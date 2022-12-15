@@ -1,4 +1,3 @@
-
 /**
  * Type `Option` represents an optional value: every `Option` is either `Option.Some` and contains a value, or `Option.None`, and does not.
  */
@@ -22,11 +21,13 @@ export class Option<T> {
         return new Option(value, true)
     }
 
+    private static _none: Option<never> = new Option<never>(undefined, false)
+
     /**
      * Creates a new `Option` representing no value.
      */
     public static None<T>(): Option<T> {
-        return new Option<T>(undefined, false)
+        return Option._none as Option<T>
     }
 
     /**
