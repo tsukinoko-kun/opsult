@@ -1,0 +1,37 @@
+{
+  "name": "@frank-mayer/opsult",
+  "version": "1.0.0",
+  "isLibrary": true,
+  "description": "A simple implementation of Option and Result types in TypeScript",
+  "source": "src/index.ts",
+  "main": "main.js",
+  "types": "types.d.ts",
+  "module": "module.js",
+  "scripts": {
+    "watch": "parcel watch",
+    "build": "parcel build",
+    "test": "jest --coverage",
+    "lint": "eslint --ext .ts,.js src test"
+  },
+  "author": "Frank Mayer",
+  "license": "MIT",
+  "devDependencies": {
+    "@parcel/packager-ts": "^2.8.0",
+    "@parcel/transformer-typescript-types": "^2.8.0",
+    "@typescript-eslint/eslint-plugin": "^5.46.1",
+    "@typescript-eslint/parser": "^5.46.1",
+    "eslint": "^8.29.0",
+    "eslint-plugin-unused-imports": "^2.0.0",
+    "jest": "^29.3.1",
+    "parcel": "^2.8.0",
+    "typescript": "^4.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Frank-Mayer/opsult.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Frank-Mayer/opsult/issues"
+  },
+  "homepage": "https://github.com/Frank-Mayer/opsult#readme"
+}
