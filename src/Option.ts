@@ -1,40 +1,46 @@
 /**
- * Type `Option` represents an optional value: every `Option` is either `Option.Some` and contains a value, or `Option.None`, and does not.
+ * Type `Option` represents an optional value: every `Option` is either `Some` and contains a value, or `None`, and does not.
  */
 export class Option<T> {
-    protected _value: T | undefined
+    protected readonly _value: T | undefined
 
-    /**
-     * Checks if the option is `Some`.
-     */
-    public readonly isSome: boolean
+    protected readonly _isSome: boolean
 
     protected constructor(value: T | undefined, isSome: boolean) {
         this._value = value
-        this.isSome = isSome
+        this._isSome = isSome
     }
 
     /**
      * Creates a new `Option` representing a value.
+     * @internal
      */
     public static Some<T>(value: T): Option<T> {
         return new Option(value, true)
     }
 
-    private static _none: Option<never> = new Option<never>(undefined, false)
+    private static _none: Option<never> = new Option<never>(undefined as never, false)
 
     /**
      * Creates a new `Option` representing no value.
+     * @internal
      */
     public static None<T>(): Option<T> {
         return Option._none as Option<T>
     }
 
     /**
+     * Checks if the option is `Some`.
+     */
+    public isSome(): boolean {
+        return this._isSome
+    }
+
+    /**
      * Checks if the option is `None`.
      */
-    public get isNone(): boolean {
-        return !this.isSome
+    public isNone(): boolean {
+        return !this._isSome
     }
 
     /**
@@ -42,11 +48,11 @@ export class Option<T> {
      * Throws an error if the value is an `None`.
      */
     public unwrap(): T {
-        if (this.isNone) {
-            throw new Error("Called Option::unwrap on None")
+        if (this._isSome) {
+            return this._value as T
         }
 
-        return this._value as T
+        throw new Error("Called Option::unwrap on None")
     }
 
     /**
@@ -54,11 +60,11 @@ export class Option<T> {
      * @param defaultValue The default value to return.
      */
     public unwrapOr(defaultValue: T): T {
-        if (this.isNone) {
-            return defaultValue
+        if (this._isSome) {
+            return this._value as T
         }
 
-        return this._value as T
+        return defaultValue
     }
 
     /**
@@ -67,11 +73,11 @@ export class Option<T> {
      * @returns The contained `Some` value or the provided default value.
      */
     public unwrapOrElse(defaultValue: () => T): T {
-        if (this.isNone) {
-            return defaultValue()
+        if (this._isSome) {
+            return this._value as T
         }
 
-        return this._value as T
+        return defaultValue()
     }
 
     /**
@@ -79,7 +85,7 @@ export class Option<T> {
      * @param f The function to apply.
      */
     public map<U>(f: (value: T) => U): Option<U> {
-        if (this.isSome) {
+        if (this._isSome) {
             return Option.Some(f(this._value as T))
         }
 
@@ -90,7 +96,7 @@ export class Option<T> {
      * Returns `this` option if it contains a value, otherwise returns the other `Option`.
      */
     public or(other: Option<T>): Option<T> {
-        if (this.isSome) {
+        if (this._isSome) {
             return this
         }
 
@@ -102,7 +108,7 @@ export class Option<T> {
      * @param defaultValue A function that returns the default value to return.
      */
     public orElse(defaultValue: () => Option<T>): Option<T> {
-        if (this.isSome) {
+        if (this._isSome) {
             return this
         }
 
@@ -115,7 +121,7 @@ export class Option<T> {
      * @returns
      */
     public and<U>(other: Option<U>): Option<U> {
-        if (this.isSome) {
+        if (this._isSome) {
             return other
         }
 
@@ -126,7 +132,7 @@ export class Option<T> {
      * Returns the other `Option` if `this` contains a value, otherwise returns `None`.
      */
     public andThen<U>(other: (value: T) => Option<U>): Option<U> {
-        if (this.isSome) {
+        if (this._isSome) {
             return other(this._value as T)
         }
 
@@ -140,8 +146,18 @@ export class Option<T> {
      * @returns The return value of the function that was run.
      */
     public match<U>(some: (value: T) => U, none: () => U): U {
-        return this.isSome
+        return this._isSome
             ? some(this._value as T)
             : none()
     }
 }
+
+/**
+ * Creates a new `Option` representing a value.
+ */
+export const Some = <T>(value: T) => Option.Some<T>(value)
+
+/**
+ * Creates a new `Option` representing no value.
+ */
+export const None = <T>() => Option.None<T>()

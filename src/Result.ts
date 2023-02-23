@@ -1,22 +1,20 @@
 /**
  * `Result<T, E>` is the type used for returning and propagating errors.
- * Use `Result.Ok` to return a successful result and `Result.Err` to return an error.
+ * Use `Ok` to return a successful result and `Err` to return an error.
  */
 export class Result<T, E> {
-    protected _value: T | E
+    protected readonly _value: T | E
 
-    /**
-     * Checks if the result is `Ok`.
-     */
-    public readonly isOk: boolean
+    protected readonly _isOk: boolean
 
     protected constructor(value: T | E, isOk: boolean) {
         this._value = value
-        this.isOk = isOk
+        this._isOk = isOk
     }
 
     /**
      * Creates a new `Result` representing a successful result.
+     * @internal
      */
     public static Ok<T, E>(value: T): Result<T, E> {
         return new Result<T, E>(value, true)
@@ -24,6 +22,7 @@ export class Result<T, E> {
 
     /**
      * Creates a new `Result` representing an error.
+     * @internal
      */
     public static Err<T, E>(error: E): Result<T, E> {
         return new Result<T, E>(error, false)
@@ -44,10 +43,17 @@ export class Result<T, E> {
     }
 
     /**
+     * Checks if the result is `Ok`.
+     */
+    public isOk(): boolean {
+        return this._isOk
+    }
+
+    /**
      * Checks if the result is `Err`.
      */
-    public get isErr(): boolean {
-        return !this.isOk
+    public isErr(): boolean {
+        return !this._isOk
     }
 
     /**
@@ -55,11 +61,11 @@ export class Result<T, E> {
      * Throws an error if the value is an `Err`.
      */
     public unwrap(): T {
-        if (this.isErr) {
-            throw new Error("Called Result::unwrap on Err")
+        if (this._isOk) {
+            return this._value as T
         }
 
-        return this._value as T
+        throw new Error("Called Result::unwrap on Err")
     }
 
     /**
@@ -67,7 +73,7 @@ export class Result<T, E> {
      * Throws an error if the value is an `Ok`.
      */
     public unwrapErr(): E {
-        if (this.isOk) {
+        if (this._isOk) {
             throw new Error("Called Result::unwrapErr on Ok")
         }
 
@@ -80,11 +86,11 @@ export class Result<T, E> {
      * @returns The contained `Ok` value or the provided default value.
      */
     public unwrapOr(defaultValue: T): T {
-        if (this.isErr) {
-            return defaultValue
+        if (this._isOk) {
+            return this._value as T
         }
 
-        return this._value as T
+        return defaultValue
     }
 
     /**
@@ -93,11 +99,11 @@ export class Result<T, E> {
      * @returns The contained `Ok` value or the provided default value.
      */
     public unwrapOrElse(defaultValue: () => T): T {
-        if (this.isErr) {
-            return defaultValue()
+        if (this._isOk) {
+            return this._value as T
         }
 
-        return this._value as T
+        return defaultValue()
     }
 
     /**
@@ -106,11 +112,11 @@ export class Result<T, E> {
      * @returns The `Result` of the function.
      */
     public map<U>(f: (value: T) => U): Result<U, E> {
-        if (this.isErr) {
-            return Result.Err(this._value as E)
+        if (this._isOk) {
+            return Result.Ok(f(this._value as T))
         }
 
-        return Result.Ok(f(this._value as T))
+        return this as unknown as Result<U, E>
     }
 
     /**
@@ -119,8 +125,8 @@ export class Result<T, E> {
      * @returns The `Result` of the function.
      */
     public mapErr<F>(f: (error: E) => F): Result<T, F> {
-        if (this.isOk) {
-            return Result.Ok(this._value as T)
+        if (this._isOk) {
+            return this as unknown as Result<T, F>
         }
 
         return Result.Err(f(this._value as E))
@@ -133,8 +139,18 @@ export class Result<T, E> {
      * @returns The return value of the function that was run.
      */
     public match<U>(ok: (value: T) => U, err: (error: E) => U): U {
-        return this.isOk
+        return this._isOk
             ? ok(this._value as T)
             : err(this._value as E)
     }
 }
+
+/**
+ * Creates a new `Result` representing a successful result.
+ */
+export const Ok = <T, E>(value: T): Result<T, E> => Result.Ok(value)
+
+/**
+ * Creates a new `Result` representing an error.
+ */
+export const Err = <T, E>(error: E): Result<T, E> => Result.Err(error)
