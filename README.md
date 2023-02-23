@@ -9,3 +9,10 @@ A simple implementation of Option and Result types in TypeScript
 [![Test](https://github.com/Frank-Mayer/opsult/actions/workflows/test.yml/badge.svg)](https://github.com/Frank-Mayer/opsult/actions/workflows/test.yml)
 
 [![Lint](https://github.com/Frank-Mayer/opsult/actions/workflows/lint.yml/badge.svg)](https://github.com/Frank-Mayer/opsult/actions/workflows/lint.yml)
+
+```TypeScript
+import { some } from '@frank-mayer/opsult/Option';
+
+let x: Option<number> = some(2);
+x.isSome(); // true
+```

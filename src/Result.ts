@@ -1,6 +1,8 @@
+import { panic } from "@frank-mayer/panic"
+
 /**
  * `Result<T, E>` is the type used for returning and propagating errors.
- * Use `Ok` to return a successful result and `Err` to return an error.
+ * Use `ok` to return a successful result and `err` to return an error.
  */
 export class Result<T, E> {
     protected readonly _value: T | E
@@ -14,76 +16,60 @@ export class Result<T, E> {
 
     /**
      * Creates a new `Result` representing a successful result.
-     * @internal
      */
-    public static Ok<T, E>(value: T): Result<T, E> {
+    public static ok<T, E>(value: T): Result<T, E> {
         return new Result<T, E>(value, true)
     }
 
     /**
      * Creates a new `Result` representing an error.
-     * @internal
      */
-    public static Err<T, E>(error: E): Result<T, E> {
+    public static err<T, E>(error: E): Result<T, E> {
         return new Result<T, E>(error, false)
     }
 
     /**
-     * Creates a new `Result` from a `Promise`.
-     * If the promise resolves, the result will be `Ok`.
-     * If the promise rejects, the result will be `Err`.
-     */
-    public static WrapPromise<T>(promise: Promise<T>) {
-        return (
-            promise
-                .then(Result.Ok)
-                .catch(Result.Err)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ) as Promise<Result<T, any>>
-    }
-
-    /**
-     * Checks if the result is `Ok`.
+     * Checks if the result is `ok`.
      */
     public isOk(): boolean {
         return this._isOk
     }
 
     /**
-     * Checks if the result is `Err`.
+     * Checks if the result is `err`.
      */
     public isErr(): boolean {
         return !this._isOk
     }
 
     /**
-     * Returns the contained `Ok` value.
-     * Throws an error if the value is an `Err`.
+     * Returns the contained `ok` value.
+     * Panics if the value is an `err`.
      */
     public unwrap(): T {
         if (this._isOk) {
             return this._value as T
         }
 
-        throw new Error("Called Result::unwrap on Err")
+        panic("Called Result::unwrap on Err")
     }
 
     /**
-     * Returns the contained `Err` value.
-     * Throws an error if the value is an `Ok`.
+     * Returns the contained `err` value.
+     * Panics if the value is an `ok`.
      */
     public unwrapErr(): E {
         if (this._isOk) {
-            throw new Error("Called Result::unwrapErr on Ok")
+            panic("Called Result::unwrapErr on Ok")
         }
 
         return this._value as E
     }
 
     /**
-     * Returns the contained `Ok` value.
-     * @param defaultValue The default value to return if the result is an `Err`.
-     * @returns The contained `Ok` value or the provided default value.
+     * Returns the contained `ok` value.
+     * @param defaultValue The default value to return if the result is an `err`.
+     * @returns The contained `ok` value or the provided default value.
      */
     public unwrapOr(defaultValue: T): T {
         if (this._isOk) {
@@ -94,9 +80,9 @@ export class Result<T, E> {
     }
 
     /**
-     * Returns the contained `Ok` value or computes it from the given function.
-     * @param defaultValue A function that returns the default value to return if the result is an `Err`.
-     * @returns The contained `Ok` value or the provided default value.
+     * Returns the contained `ok` value or computes it from the given function.
+     * @param defaultValue A function that returns the default value to return if the result is an `err`.
+     * @returns The contained `ok` value or the provided default value.
      */
     public unwrapOrElse(defaultValue: () => T): T {
         if (this._isOk) {
@@ -107,20 +93,20 @@ export class Result<T, E> {
     }
 
     /**
-     * Maps a `Result<T, E>` to `Result<U, E>` by applying a function to a contained `Ok` value, leaving an `Err` value untouched.
+     * Maps a `Result<T, E>` to `Result<U, E>` by applying a function to a contained `ok` value, leaving an `err` value untouched.
      * @param f The function to apply.
      * @returns The `Result` of the function.
      */
     public map<U>(f: (value: T) => U): Result<U, E> {
         if (this._isOk) {
-            return Result.Ok(f(this._value as T))
+            return Result.ok(f(this._value as T))
         }
 
         return this as unknown as Result<U, E>
     }
 
     /**
-     * Maps a `Result<T, E>` to `Result<T, F>` by applying a function to a contained `Err` value, leaving an `Ok` value untouched.
+     * Maps a `Result<T, E>` to `Result<T, F>` by applying a function to a contained `err` value, leaving an `ok` value untouched.
      * @param f The function to apply.
      * @returns The `Result` of the function.
      */
@@ -129,13 +115,13 @@ export class Result<T, E> {
             return this as unknown as Result<T, F>
         }
 
-        return Result.Err(f(this._value as E))
+        return Result.err(f(this._value as E))
     }
 
     /**
      * Runs one of the provided functions depending on the value of `this` result.
-     * @param ok The function to run if the result is `Ok`.
-     * @param err The function to run if the result is `Err`.
+     * @param ok The function to run if the result is `ok`.
+     * @param err The function to run if the result is `err`.
      * @returns The return value of the function that was run.
      */
     public match<U>(ok: (value: T) => U, err: (error: E) => U): U {
@@ -148,9 +134,9 @@ export class Result<T, E> {
 /**
  * Creates a new `Result` representing a successful result.
  */
-export const Ok = <T, E>(value: T): Result<T, E> => Result.Ok(value)
+export const ok = <T, E>(value: T): Result<T, E> => Result.ok(value)
 
 /**
  * Creates a new `Result` representing an error.
  */
-export const Err = <T, E>(error: E): Result<T, E> => Result.Err(error)
+export const err = <T, E>(error: E): Result<T, E> => Result.err(error)

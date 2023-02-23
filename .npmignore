@@ -1,16 +1,15 @@
 # Source Files
 src/
 
-# GitHub
+# Git
 .github/
+.gitattributes
 
 # Tests
+test/
 *.test.js
 *.test.ts
 coverage/
-
-# Source Maps
-*.map
 
 # Logs
 logs
@@ -25,6 +24,11 @@ lerna-debug.log*
 .idea
 .vscode
 .vs
+.editorconfig
+.eslintrc.js
+.eslintrc.json
+.eslintignore
+tsconfig.jso
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

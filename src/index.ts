@@ -1,4 +1,3 @@
-import { Option, Some, None } from "./Option"
-import { Result, Ok, Err } from "./Result"
-
-export { Option, Some, None, Result, Ok, Err }
+export * from "./Option"
+export * from "./Result"
+export * from "./Future"
