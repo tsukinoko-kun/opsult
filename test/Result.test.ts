@@ -1,4 +1,4 @@
-const { ok, err } = require("../Result")
+import { ok, err } from "../Result"
 
 test("isOk", () => {
     const okRes = ok(1)
@@ -50,18 +50,18 @@ test("unwrapOrElse", () => {
 })
 
 test("map", () => {
-    const okRes = ok(1)
-    const errRes = err(2)
-    const fn = (x) => x + 1
+    const okRes = ok<number, number>(1)
+    const errRes = err<number, number>(2)
+    const fn = (x: number) => x + 1
 
     expect(okRes.map(fn).unwrap()).toBe(2)
     expect(errRes.map(fn).unwrapErr()).toBe(2)
 })
 
 test("mapErr", () => {
-    const okRes = ok(1)
-    const errRes = err(2)
-    const fn = (x) => x + 1
+    const okRes = ok<number, number>(1)
+    const errRes = err<number, number>(2)
+    const fn = (x: number) => x + 1
 
     expect(okRes.mapErr(fn).unwrap()).toBe(1)
     expect(errRes.mapErr(fn).unwrapErr()).toBe(3)

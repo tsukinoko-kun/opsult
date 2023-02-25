@@ -1,4 +1,4 @@
-const { some, none } = require("../Option")
+import { some, none } from "../Option"
 
 test("isSome", () => {
     const someOption = some(1)
@@ -43,8 +43,8 @@ test("unwrapOrElse", () => {
 
 test("map", () => {
     const someOption = some(1)
-    const noneOption = none()
-    const f = (x) => x + 1
+    const noneOption = none<number>()
+    const f = (x: number) => x + 1
 
     expect(someOption.map(f).unwrap()).toBe(2)
     expect(noneOption.map(f).isNone()).toBe(true)

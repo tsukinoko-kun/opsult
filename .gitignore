@@ -4,6 +4,9 @@
 *.map
 !.eslintrc.js
 
+# Config
+!*.config.js
+
 # Logs
 logs
 *.log
