@@ -40,4 +40,29 @@ export class Future<T, E> extends Promise<Result<T, E>> {
             err(reason)
         })
     }
+
+    public static join<T, E>(futures: Array<Future<T, E>>) {
+        return new Future<Array<T>, Array<E>>((ok, err) => {
+            Promise.all(futures).then((results) => {
+                const errors = new Array<E>()
+                const values = new Array<T>()
+
+                for (const result of results) {
+                    if (result.isOk()) {
+                        values.push(result.unwrap())
+                    }
+                    else {
+                        errors.push(result.unwrapErr())
+                    }
+                }
+
+                if (errors.length !== 0) {
+                    err(errors)
+                }
+                else {
+                    ok(values)
+                }
+            })
+        })
+    }
 }
