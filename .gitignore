@@ -3,6 +3,8 @@
 /*.d.ts
 *.map
 !.eslintrc.js
+/docs
+
 
 # Config
 !*.config.js

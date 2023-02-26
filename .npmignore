@@ -1,6 +1,9 @@
 # Source Files
 src/
 
+# Docs
+docs/
+
 # Git
 .github/
 .gitattributes
@@ -29,7 +32,7 @@ lerna-debug.log*
 .eslintrc.js
 .eslintrc.json
 .eslintignore
-tsconfig.jso
+tsconfig.json
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
