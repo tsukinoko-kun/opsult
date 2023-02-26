@@ -16,6 +16,12 @@ export class Result<T, E> {
 
     /**
      * Creates a new `Result` representing a successful result.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.ok("Hello World")
+     * ```
      */
     public static ok<T, E>(value: T): Result<T, E> {
         return new Result<T, E>(value, true)
@@ -23,6 +29,12 @@ export class Result<T, E> {
 
     /**
      * Creates a new `Result` representing an error.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.err(42)
+     * const b = Result.err("Hello World")
+     * ```
      */
     public static err<T, E>(error: E): Result<T, E> {
         return new Result<T, E>(error, false)
@@ -30,6 +42,15 @@ export class Result<T, E> {
 
     /**
      * Checks if the result is `ok`.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.isOk() // true
+     * b.isOk() // false
+     * ```
      */
     public isOk(): boolean {
         return this._isOk
@@ -37,6 +58,15 @@ export class Result<T, E> {
 
     /**
      * Checks if the result is `err`.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.isErr() // false
+     * b.isErr() // true
+     * ```
      */
     public isErr(): boolean {
         return !this._isOk
@@ -45,6 +75,15 @@ export class Result<T, E> {
     /**
      * Returns the contained `ok` value.
      * Panics if the value is an `err`.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.unwrap() // 42
+     * b.unwrap() // panic
+     * ```
      */
     public unwrap(): T {
         if (this._isOk) {
@@ -57,6 +96,15 @@ export class Result<T, E> {
     /**
      * Returns the contained `err` value.
      * Panics if the value is an `ok`.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.unwrapErr() // panic
+     * b.unwrapErr() // "Hello World"
+     * ```
      */
     public unwrapErr(): E {
         if (this._isOk) {
@@ -70,6 +118,15 @@ export class Result<T, E> {
      * Returns the contained `ok` value.
      * @param defaultValue The default value to return if the result is an `err`.
      * @returns The contained `ok` value or the provided default value.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.unwrapOr(0) // 42
+     * b.unwrapOr(0) // 0
+     * ```
      */
     public unwrapOr(defaultValue: T): T {
         if (this._isOk) {
@@ -83,6 +140,15 @@ export class Result<T, E> {
      * Returns the contained `ok` value or computes it from the given function.
      * @param defaultValue A function that returns the default value to return if the result is an `err`.
      * @returns The contained `ok` value or the provided default value.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.unwrapOrElse(() => 0) // 42
+     * b.unwrapOrElse(() => 0) // 0
+     * ```
      */
     public unwrapOrElse(defaultValue: () => T): T {
         if (this._isOk) {
@@ -96,6 +162,15 @@ export class Result<T, E> {
      * Maps a `Result<T, E>` to `Result<U, E>` by applying a function to a contained `ok` value, leaving an `err` value untouched.
      * @param f The function to apply.
      * @returns The `Result` of the function.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.map(x => x * 2) // Result.ok(84)
+     * b.map(x => x * 2) // Result.err("Hello World")
+     * ```
      */
     public map<U>(f: (value: T) => U): Result<U, E> {
         if (this._isOk) {
@@ -109,6 +184,15 @@ export class Result<T, E> {
      * Maps a `Result<T, E>` to `Result<T, F>` by applying a function to a contained `err` value, leaving an `ok` value untouched.
      * @param f The function to apply.
      * @returns The `Result` of the function.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.mapErr(x => x.length) // Result.ok(42)
+     * b.mapErr(x => x.length) // Result.err(11)
+     * ```
      */
     public mapErr<F>(f: (error: E) => F): Result<T, F> {
         if (this._isOk) {
@@ -123,6 +207,21 @@ export class Result<T, E> {
      * @param ok The function to run if the result is `ok`.
      * @param err The function to run if the result is `err`.
      * @returns The return value of the function that was run.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Result.ok(42)
+     * const b = Result.err("Hello World")
+     *
+     * a.match(
+     *     x => x * 2,
+     *     x => x.length
+     * ) // 84
+     *
+     * b.match(
+     *     x => x * 2,
+     *     x => x.length
+     * ) // 11
      */
     public match<U>(ok: (value: T) => U, err: (error: E) => U): U {
         return this._isOk
@@ -133,10 +232,28 @@ export class Result<T, E> {
 
 /**
  * Creates a new `Result` representing a successful result.
+ *
+ * @example
+ * ```TypeScript
+ * const a = Result.ok(42)
+ * const b = Result.err("Hello World")
+ *
+ * a.isOk() // true
+ * b.isOk() // false
+ * ```
  */
 export const ok = <T, E>(value: T): Result<T, E> => Result.ok(value)
 
 /**
  * Creates a new `Result` representing an error.
+ *
+ * @example
+ * ```TypeScript
+ * const a = Result.ok(42)
+ * const b = Result.err("Hello World")
+ *
+ * a.isErr() // false
+ * b.isErr() // true
+ * ```
  */
 export const err = <T, E>(error: E): Result<T, E> => Result.err(error)
