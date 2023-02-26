@@ -1,6 +1,6 @@
 # opsult
 
-A simple implementation of Option and Result types in TypeScript
+A simple implementation of Option, Result and Future types in TypeScript
 
 [![Types included](https://img.shields.io/badge/Types-included-blue?logo=typescript&style=plastic)](https://www.typescriptlang.org)
 
