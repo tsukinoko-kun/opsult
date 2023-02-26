@@ -1,5 +1,6 @@
+import { Panic } from "@frank-mayer/panic"
 import { Future } from "../Future"
-import { ok, err } from "../Result"
+import { err, ok } from "../Result"
 
 test("constructor", async () => {
     expect(new Future(((ok) => ok(1))))
@@ -7,43 +8,40 @@ test("constructor", async () => {
         .toBeInstanceOf(Future)
 })
 
-test("from", async () => {
-    {
-        const f = Future.from(Promise.resolve(1))
-        expect(f).toBeInstanceOf(Future)
+test("from resolve", async () => {
+    const f = Future.from(Promise.resolve(1))
+    expect(f).toBeInstanceOf(Future)
 
-        const fValue = await f
-        expect(fValue).toEqual(ok(1))
-    }
-
-    {
-        const f = Future.from(Promise.reject("error"))
-        expect(f).toBeInstanceOf(Future)
-
-        const fValue = await f
-        expect(fValue).toEqual(err("error"))
-    }
+    const fValue = await f
+    expect(fValue).toEqual(ok(1))
 })
 
-test("parse", async () => {
-    {
-        const prop = Promise.resolve(ok("ok"))
-        const f = Future.parse(prop)
-        expect(f).toBeInstanceOf(Future)
+test("from reject", async () => {
+    const f = Future.from(Promise.reject("error"))
+    expect(f).toBeInstanceOf(Future)
 
-        const fValue = await f
-        expect(fValue).toEqual(ok("ok"))
-        expect(fValue).not.toEqual(ok(1))
-    }
+    const fValue = await f
+    expect(fValue.isErr()).toBeTruthy()
+    expect(fValue).toEqual(err(new Panic("error")))
+})
 
-    {
-        const f = Future.parse(Promise.resolve(err("error")))
-        expect(f).toBeInstanceOf(Future)
+test("parse ok", async () => {
+    const prop = Promise.resolve(ok("ok"))
+    const f = Future.parse(prop)
+    expect(f).toBeInstanceOf(Future)
 
-        const fValue = await f
-        expect(fValue).toEqual(err("error"))
-        expect(fValue).not.toEqual(ok("error"))
-    }
+    const fValue = await f
+    expect(fValue).toEqual(ok("ok"))
+    expect(fValue).not.toEqual(ok(1))
+})
+
+test("parse err", async () => {
+    const f = Future.parse(Promise.resolve(err<number, string>("error")))
+    expect(f).toBeInstanceOf(Future)
+
+    const fValue = await f
+    expect(fValue).toEqual(err<number, string>("error"))
+    expect(fValue).not.toEqual(ok<string, string>("error"))
 })
 
 test("ok", async () => {
@@ -94,10 +92,8 @@ test("join err", async () => {
 })
 
 test("join reject", async () => {
-    const f = Future.join<number, number>([
+    const f = Future.join<number, Panic>([
         Future.ok(0),
-        Future.err(1),
-        Future.err(2),
         Future.from(
             new Promise((_, reject) => {
                 reject()

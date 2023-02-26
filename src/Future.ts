@@ -34,15 +34,19 @@ export class Future<T, E> extends Promise<Result<T, E>> {
     public static from<T, E extends Error = Error>(promise: Promise<T>): Future<T, E> {
         return new Future((ok, err) => {
             promise.then(ok).catch((errorValue) => {
-                if (errorValue instanceof Error) {
-                    err(errorValue as E)
+                if (typeof errorValue == "object") {
+                    if (errorValue instanceof Error) {
+                        err(errorValue as E)
+                        return
+                    }
+
+                    if ("message" in errorValue) {
+                        err(new Panic(errorValue.message) as E)
+                        return
+                    }
                 }
-                else if ("message" in errorValue) {
-                    err(new Panic(errorValue.message) as E)
-                }
-                else {
-                    err(new Panic(String(errorValue)) as E)
-                }
+
+                err(new Panic(String(errorValue)) as E)
             })
         })
     }
