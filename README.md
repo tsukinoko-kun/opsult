@@ -10,6 +10,8 @@ A simple implementation of Option and Result types in TypeScript
 
 [![Lint](https://github.com/Frank-Mayer/opsult/actions/workflows/lint.yml/badge.svg)](https://github.com/Frank-Mayer/opsult/actions/workflows/lint.yml)
 
+[Read the docs](https://Frank-Mayer.github.io/opsult)
+
 ```TypeScript
 import { some } from '@frank-mayer/opsult/Option';
 
