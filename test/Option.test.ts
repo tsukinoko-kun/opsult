@@ -79,13 +79,15 @@ test("and", () => {
 })
 
 test("andThen", () => {
-    const someOption = some(1)
-    const noneOption = none()
-    const otherOption = some(2)
-    const f = () => otherOption
+    {
+        const someOption = some(1)
+        const noneOption = none()
+        const otherOption = some(2)
+        const f = () => otherOption
 
-    expect(someOption.andThen(f).unwrap()).toBe(2)
-    expect(noneOption.andThen(f).isNone()).toBe(true)
+        expect(someOption.andThen(f).unwrap()).toBe(2)
+        expect(noneOption.andThen(f).isNone()).toBe(true)
+    }
 })
 
 test("match", () => {

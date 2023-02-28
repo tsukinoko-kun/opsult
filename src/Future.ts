@@ -1,4 +1,5 @@
 import { Panic } from "@frank-mayer/panic"
+import { IntoFuture } from "./IntoFuture"
 import { Result } from "./Result"
 
 /**
@@ -7,6 +8,14 @@ import { Result } from "./Result"
  * Other than a {@link Promise}, a `Future` has **fixed types for the value and the error**.
  */
 export class Future<T, E> extends Promise<Result<T, E>> {
+    public get futureExecutor() {
+        return (resolveOk: (value: T) => void, resolveErr: (reason: E) => void) => {
+            this.then((result) => {
+                result.futureExecutor(resolveOk, resolveErr)
+            })
+        }
+    }
+
     constructor(executor: (ok: (value: T) => void, err: (reason: E) => void) => void) {
         super((resolve) => {
             executor(
@@ -48,11 +57,19 @@ export class Future<T, E> extends Promise<Result<T, E>> {
 
                 err(new Panic(String(errorValue)) as E)
             })
+                .catch((error) => {
+                    if (error instanceof Error || error instanceof Panic) {
+                        err(error as E)
+                    }
+                    else {
+                        err(new Panic(String(error)) as E)
+                    }
+                })
         })
     }
 
     /**
-     * Creates a new `Future` from a `Promise<Result<T, E>>`.
+     * Creates a new `Future` from a `Promise<IntoFuture<T, E>>`.
      *
      * @example
      * ```TypeScript
@@ -60,21 +77,16 @@ export class Future<T, E> extends Promise<Result<T, E>> {
      * const b = Future.parse(Promise.resolve(Result.err(new Error("Something went wrong"))))
      * ```
      */
-    public static parse<T, E>(promise: Promise<Result<T, E>>): Future<T, E> {
+    public static parse<T, E>(promise: Promise<IntoFuture<T, E>>): Future<T, E> {
         return new Future((ok, err) => {
             promise.then((result) => {
-                if (result.isOk()) {
-                    ok(result.unwrap())
-                }
-                else {
-                    err(result.unwrapErr())
-                }
+                result.futureExecutor(ok, err)
             })
         })
     }
 
     /**
-     * Creates a new `Future` from a `Promise<Result<T, E>>` from a `ok` value.
+     * Creates a new `Future` from a `ok` value.
      *
      * @example
      * ```TypeScript
@@ -88,7 +100,7 @@ export class Future<T, E> extends Promise<Result<T, E>> {
     }
 
     /**
-     * Creates a new `Future` from a `Promise<Result<T, E>>` from a `err` value.
+     * Creates a new `Future` from a `err` value.
      *
      * @example
      * ```TypeScript
@@ -217,6 +229,102 @@ export class Future<T, E> extends Promise<Result<T, E>> {
                     err(new Panic(JSON.stringify(e)))
                 }
             }
+        })
+    }
+
+    /**
+     * Execute another `Future` after `this` one has resolved successfully.
+     *
+     * This function can be used to chain two `Future`s together and ensure that the final `Future` isn't resolved until both have finished. The function provided is yielded the successful result of `this` `Future` and returns another value which can be converted into a `Future`.
+     *
+     * Note that because {@link Result} implements the {@link IntoFuture} interface `this` method can also be useful for chaining fallible and serial computations onto the end of one `Future`.
+     *
+     * If `this` `Future` is dropped, panics, or completes with an error then the provided function `f` is never called.
+     *
+     * Note that `this` function consumes the receiving `Future` and returns a wrapped version of it.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Future.ok(42)
+     * const b = a.andThen((value) => Future.ok(value + 1))
+     *
+     * (await b).unwrap() // 43
+     * ```
+     */
+    public andThen<U>(fn: (value: T) => Future<U, E> | IntoFuture<U, E>): Future<U, E> {
+        return new Future((ok, err) => {
+            this.then((thisResult) => {
+                if (thisResult.isOk()) {
+                    const other = fn(thisResult.unwrap())
+                    other.futureExecutor(ok, err)
+                }
+                else {
+                    err(thisResult.unwrapErr())
+                }
+            })
+        })
+    }
+
+    /**
+     * Execute another `Future` if `this` one resolves with an error.
+     *
+     * Return a `Future` that passes along `this` `Future`'s value if it succeeds, and otherwise passes the error to the function `f` and waits for the `Future` it returns. The function may also simply return a value that can be converted into a `Future`.
+     *
+     * Note that because {@link Result} implements the {@link IntoFuture} interface `this` method can also be useful for chaining together fallback computations, where when one fails, the next is attempted.
+     *
+     * If `this` `Future` is dropped, panics, or completes successfully then the provided function f is never called.
+     *
+     * Note that `this` function consumes the receiving `Future` and returns a wrapped version of it.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Future.err("Something went wrong")
+     * const b = a.orElse((err) => Future.ok(42))
+     *
+     * (await b).unwrap() // 42
+     * ```
+     */
+    public orElse<U>(f: (err: E) => Future<U, E> | IntoFuture<U, E>): Future<T | U, E> {
+        return new Future((ok, err) => {
+            this.then((thisResult) => {
+                if (thisResult.isOk()) {
+                    ok(thisResult.unwrap())
+                }
+                else {
+                    const other = f(thisResult.unwrapErr())
+                    other.futureExecutor(ok, err)
+                }
+            })
+        })
+    }
+
+    /**
+     * Map `this` `Future`’s result to a different type, returning a new `Future` of the resulting type.
+     *
+     * This function is similar to the `Optio`::map` where it will change the type of the underlying `Future`. This is useful to chain along a computation once a `Future` has been resolved.
+     *
+     * The function provided will only be called if `this` `Future` is resolved successfully. If `this` `Future` returns an error, panics, or is dropped, then the function provided will never be invoked.
+     *
+     * Note that `this` function consumes the receiving `Future` and returns a wrapped version of it.
+     *
+     * @example
+     * ```TypeScript
+     * const a = Future.ok(42)
+     * const b = a.map((value) => value + 1)
+     *
+     * (await b).unwrap() // 43
+     * ```
+     */
+    public map<U>(f: (value: T) => U): Future<U, E> {
+        return new Future((ok, err) => {
+            this.then((thisResult) => {
+                if (thisResult.isOk()) {
+                    ok(f(thisResult.unwrap()))
+                }
+                else {
+                    err(thisResult.unwrapErr())
+                }
+            })
         })
     }
 }

@@ -1,12 +1,21 @@
 import { panic } from "@frank-mayer/panic"
+import type { IntoFuture } from "./IntoFuture"
 
 /**
  * Type `Option` represents an optional value: every `Option` is either `some` and contains a value, or `none`, and does not.
  */
-export class Option<T> {
+export class Option<T> implements IntoFuture<T, null> {
     protected readonly _value: T | undefined
 
     protected readonly _isSome: boolean
+
+    public get futureExecutor() {
+        if (this._isSome) {
+            return (resolveOk: (value: T) => void) => resolveOk(this._value as T)
+        }
+
+        return (_: (value: T) => void, resolveErr: (reason: null)=>void) => resolveErr(null)
+    }
 
     protected constructor(value: T | undefined, isSome: boolean) {
         this._value = value
@@ -18,7 +27,7 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const some = Option.some(42)
+     * const some = some(42)
      * ```
      */
     public static some<T>(value: T): Option<T> {
@@ -32,7 +41,7 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const none = Option.none<number>()
+     * const none = none<number>()
      * ```
      */
     public static none<T>(): Option<T> {
@@ -44,8 +53,8 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
+     * const a = some(42)
+     * const b = none<number>()
      *
      * a.isSome() // true
      * b.isSome() // false
@@ -60,8 +69,8 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
+     * const a = some(42)
+     * const b = none<number>()
      *
      * a.isNone() // false
      * b.isNone() // true
@@ -77,8 +86,8 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
+     * const a = some(42)
+     * const b = none<number>()
      *
      * a.unwrap() // 42
      * b.unwrap() // panics
@@ -98,8 +107,8 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
+     * const a = some(42)
+     * const b = none<number>()
      *
      * a.unwrapOr(0) // 42
      * b.unwrapOr(0) // 0
@@ -120,8 +129,8 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
+     * const a = some(42)
+     * const b = none<number>()
      *
      * a.unwrapOrElse(() => 0) // 42
      * b.unwrapOrElse(() => 0) // 0
@@ -141,19 +150,19 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
+     * const a = some(42)
+     * const b = none<number>()
      *
-     * a.map(x => x * 2) // Option.some(84)
-     * b.map(x => x * 2) // Option.none<number>()
+     * a.map(x => x * 2) // some(84)
+     * b.map(x => x * 2) // none<number>()
      * ```
      */
     public map<U>(f: (value: T) => U): Option<U> {
         if (this._isSome) {
-            return Option.some(f(this._value as T))
+            return some(f(this._value as T))
         }
 
-        return Option.none()
+        return none()
     }
 
     /**
@@ -161,12 +170,12 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
-     * const c = Option.some(0)
+     * const a = some(42)
+     * const b = none<number>()
+     * const c = some(0)
      *
-     * a.or(c) // Option.some(42)
-     * b.or(c) // Option.some(0)
+     * a.or(c) // some(42)
+     * b.or(c) // some(0)
      * ```
      */
     public or(other: Option<T>): Option<T> {
@@ -183,12 +192,12 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
-     * const c = Option.some(0)
+     * const a = some(42)
+     * const b = none<number>()
+     * const c = some(0)
      *
-     * a.orElse(() => c) // Option.some(42)
-     * b.orElse(() => c) // Option.some(0)
+     * a.orElse(() => c) // some(42)
+     * b.orElse(() => c) // some(0)
      * ```
      */
     public orElse(defaultValue: () => Option<T>): Option<T> {
@@ -206,12 +215,12 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
-     * const c = Option.some(0)
+     * const a = some(42)
+     * const b = none<number>()
+     * const c = some(0)
      *
-     * a.and(c) // Option.some(0)
-     * b.and(c) // Option.none<number>()
+     * a.and(c) // some(0)
+     * b.and(c) // none<number>()
      * ```
      */
     public and<U>(other: Option<U>): Option<U> {
@@ -219,7 +228,7 @@ export class Option<T> {
             return other
         }
 
-        return Option.none()
+        return none()
     }
 
     /**
@@ -227,11 +236,11 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
+     * const a = some(42)
+     * const b = none<number>()
      *
-     * a.andThen(x => Option.some(x * 2)) // Option.some(84)
-     * b.andThen(x => Option.some(x * 2)) // Option.none<number>()
+     * a.andThen(x => some(x * 2)) // some(84)
+     * b.andThen(x => some(x * 2)) // none<number>()
      * ```
      */
     public andThen<U>(other: (value: T) => Option<U>): Option<U> {
@@ -239,7 +248,7 @@ export class Option<T> {
             return other(this._value as T)
         }
 
-        return Option.none()
+        return none()
     }
 
     /**
@@ -250,8 +259,8 @@ export class Option<T> {
      *
      * @example
      * ```TypeScript
-     * const a = Option.some(42)
-     * const b = Option.none<number>()
+     * const a = some(42)
+     * const b = none<number>()
      *
      * a.match(
      *     x => x * 2,
@@ -276,8 +285,8 @@ export class Option<T> {
  *
  * @example
  * ```TypeScrip
- * const a = Option.some(42)
- * const b = Option.some("hello")
+ * const a = some(42)
+ * const b = some("hello")
  * ```
  */
 export const some = <T>(value: T) => Option.some<T>(value)
@@ -287,8 +296,8 @@ export const some = <T>(value: T) => Option.some<T>(value)
  *
  * @example
  * ```TypeScript
- * const a = Option.none<number>()
- * const b = Option.none<string>()
+ * const a = none<number>()
+ * const b = none<string>()
  * ```
  */
 export const none = <T>() => Option.none<T>()

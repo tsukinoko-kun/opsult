@@ -1,4 +1,5 @@
 import { ok, err } from "../Result"
+import type { Result } from "../Result"
 
 test("isOk", () => {
     const okRes = ok(1)
@@ -14,6 +15,45 @@ test("isErr", () => {
 
     expect(okRes.isErr()).toBe(false)
     expect(errRes.isErr()).toBe(true)
+})
+
+test("and", () => {
+    const a: Result<number, string> = ok(42)
+    const b: Result<number, string> = err("Hello World")
+    const c: Result<number, string> = ok(13)
+
+    expect(a.and(b)).toBe(b)
+    expect(a.and(c)).toBe(c)
+    expect(b.and(c)).toBe(b)
+})
+
+test("andThen", () => {
+    const a: Result<number, string> = ok(42)
+    const b: Result<number, string> = err("Hello World")
+    const c: Result<number, string> = ok(13)
+    const fn = () => c
+
+    expect(a.andThen(fn)).toBe(c)
+    expect(b.andThen(fn)).toBe(b)
+})
+
+test("or", () => {
+    const a: Result<number, string> = ok(42)
+    const b: Result<number, string> = err("Hello World")
+    const c: Result<number, string> = ok(13)
+
+    expect(a.or(b)).toBe(a)
+    expect(b.or(c)).toBe(c)
+})
+
+test("orElse", () => {
+    const a: Result<number, string> = ok(42)
+    const b: Result<number, string> = err("Hello World")
+    const c: Result<number, string> = ok(13)
+    const fn = () => c
+
+    expect(a.orElse(fn)).toBe(a)
+    expect(b.orElse(fn)).toBe(c)
 })
 
 test("unwrap", () => {
