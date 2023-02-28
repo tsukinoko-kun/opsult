@@ -3,6 +3,7 @@ src/
 
 # Docs
 docs/
+public/
 
 # Git
 .github/
