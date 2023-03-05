@@ -11,10 +11,12 @@ export class Option<T> implements IntoFuture<T, null> {
 
     public get futureExecutor() {
         if (this._isSome) {
-            return (resolveOk: (value: T) => void) => resolveOk(this._value as T)
+            return (resolveOk: (value: T) => void) =>
+                resolveOk(this._value as T)
         }
 
-        return (_: (value: T) => void, resolveErr: (reason: null)=>void) => resolveErr(null)
+        return (_: (value: T) => void, resolveErr: (reason: null) => void) =>
+            resolveErr(null)
     }
 
     protected constructor(value: T | undefined, isSome: boolean) {
@@ -34,7 +36,10 @@ export class Option<T> implements IntoFuture<T, null> {
         return new Option(value, true)
     }
 
-    private static _none: Option<never> = new Option<never>(undefined as never, false)
+    private static _none: Option<never> = new Option<never>(
+        undefined as never,
+        false
+    )
 
     /**
      * Creates a new `Option` representing no value.
@@ -93,7 +98,7 @@ export class Option<T> implements IntoFuture<T, null> {
      * b.unwrap() // panics
      * ```
      */
-    public unwrap(): T {
+    public unwrap(): Readonly<T> {
         if (this._isSome) {
             return this._value as T
         }
@@ -114,7 +119,7 @@ export class Option<T> implements IntoFuture<T, null> {
      * b.unwrapOr(0) // 0
      * ```
      */
-    public unwrapOr(defaultValue: T): T {
+    public unwrapOr(defaultValue: T): Readonly<T> {
         if (this._isSome) {
             return this._value as T
         }
@@ -136,7 +141,7 @@ export class Option<T> implements IntoFuture<T, null> {
      * b.unwrapOrElse(() => 0) // 0
      * ```
      */
-    public unwrapOrElse(defaultValue: () => T): T {
+    public unwrapOrElse(defaultValue: () => T): Readonly<T> {
         if (this._isSome) {
             return this._value as T
         }
@@ -157,7 +162,7 @@ export class Option<T> implements IntoFuture<T, null> {
      * b.map(x => x * 2) // none<number>()
      * ```
      */
-    public map<U>(f: (value: T) => U): Option<U> {
+    public map<U>(f: (value: Readonly<T>) => U): Option<U> {
         if (this._isSome) {
             return some(f(this._value as T))
         }
@@ -243,7 +248,7 @@ export class Option<T> implements IntoFuture<T, null> {
      * b.andThen(x => some(x * 2)) // none<number>()
      * ```
      */
-    public andThen<U>(other: (value: T) => Option<U>): Option<U> {
+    public andThen<U>(other: (value: Readonly<T>) => Option<U>): Option<U> {
         if (this._isSome) {
             return other(this._value as T)
         }
@@ -273,10 +278,8 @@ export class Option<T> implements IntoFuture<T, null> {
      * ) // 0
      * ```
      */
-    public match<U>(some: (value: T) => U, none: () => U): U {
-        return this._isSome
-            ? some(this._value as T)
-            : none()
+    public match<U>(some: (value: Readonly<T>) => U, none: () => U): U {
+        return this._isSome ? some(this._value as T) : none()
     }
 }
 

@@ -9,11 +9,14 @@ export class Result<T, E> implements IntoFuture<T, E> {
     protected readonly _value: T | E
 
     protected readonly _isOk: boolean
+
     public get futureExecutor() {
         if (this._isOk) {
-            return (resolveOk: (value: T) => void) => resolveOk(this._value as T)
+            return (resolveOk: (value: T) => void) =>
+                resolveOk(this._value as T)
         }
-        return (_: (value: T) => void, resolveErr: (reason: E) => void) => resolveErr(this._value as E)
+        return (_: (value: T) => void, resolveErr: (reason: E) => void) =>
+            resolveErr(this._value as E)
     }
 
     protected constructor(value: T | E, isOk: boolean) {
@@ -137,7 +140,7 @@ export class Result<T, E> implements IntoFuture<T, E> {
      * b.andThen(f) // err("Hello World")
      * ```
      */
-    public andThen<U>(f: (value: T) => Result<U, E>): Result<U, E> {
+    public andThen<U>(f: (value: Readonly<T>) => Result<U, E>): Result<U, E> {
         if (this._isOk) {
             return f(this._value as T)
         }
@@ -159,7 +162,7 @@ export class Result<T, E> implements IntoFuture<T, E> {
      * b.orElse(f) // ok(11)
      * ```
      */
-    public orElse<F>(f: (error: E) => Result<T, F>): Result<T, F> {
+    public orElse<F>(f: (error: Readonly<E>) => Result<T, F>): Result<T, F> {
         if (this._isOk) {
             return this as unknown as Result<T, F>
         }
@@ -180,7 +183,7 @@ export class Result<T, E> implements IntoFuture<T, E> {
      * b.unwrap() // panic
      * ```
      */
-    public unwrap(): T {
+    public unwrap(): Readonly<T> {
         if (this._isOk) {
             return this._value as T
         }
@@ -201,7 +204,7 @@ export class Result<T, E> implements IntoFuture<T, E> {
      * b.unwrapErr() // "Hello World"
      * ```
      */
-    public unwrapErr(): E {
+    public unwrapErr(): Readonly<E> {
         if (this._isOk) {
             panic("Called Result::unwrapErr on Ok")
         }
@@ -223,7 +226,7 @@ export class Result<T, E> implements IntoFuture<T, E> {
      * b.unwrapOr(0) // 0
      * ```
      */
-    public unwrapOr(defaultValue: T): T {
+    public unwrapOr(defaultValue: T): Readonly<T> {
         if (this._isOk) {
             return this._value as T
         }
@@ -245,7 +248,7 @@ export class Result<T, E> implements IntoFuture<T, E> {
      * b.unwrapOrElse(() => 0) // 0
      * ```
      */
-    public unwrapOrElse(defaultValue: () => T): T {
+    public unwrapOrElse(defaultValue: () => T): Readonly<T> {
         if (this._isOk) {
             return this._value as T
         }
@@ -267,7 +270,7 @@ export class Result<T, E> implements IntoFuture<T, E> {
      * b.map(x => x * 2) // err("Hello World")
      * ```
      */
-    public map<U>(f: (value: T) => U): Result<U, E> {
+    public map<U>(f: (value: Readonly<T>) => U): Result<U, E> {
         if (this._isOk) {
             return ok(f(this._value as T))
         }
@@ -289,7 +292,7 @@ export class Result<T, E> implements IntoFuture<T, E> {
      * b.mapErr(x => x.length) // err(11)
      * ```
      */
-    public mapErr<F>(f: (error: E) => F): Result<T, F> {
+    public mapErr<F>(f: (error: Readonly<E>) => F): Result<T, F> {
         if (this._isOk) {
             return this as unknown as Result<T, F>
         }
@@ -318,10 +321,11 @@ export class Result<T, E> implements IntoFuture<T, E> {
      *     x => x.length
      * ) // 11
      */
-    public match<U>(ok: (value: T) => U, err: (error: E) => U): U {
-        return this._isOk
-            ? ok(this._value as T)
-            : err(this._value as E)
+    public match<U>(
+        ok: (value: Readonly<T>) => U,
+        err: (error: Readonly<E>) => U
+    ): U {
+        return this._isOk ? ok(this._value as T) : err(this._value as E)
     }
 }
 
