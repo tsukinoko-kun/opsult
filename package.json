@@ -1,6 +1,6 @@
 {
   "name": "@frank-mayer/opsult",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "isLibrary": true,
   "description": "A simple implementation of Option and Result types in TypeScript",
   "main": "index.js",
